@@ -36,7 +36,7 @@ macro_rules! convert_js_to_enum {
             fn try_from(val: $ty) -> Result<Self, Self::Error> {
                 match val {
                     $(#[allow(unreachable_patterns)] $val => Ok($name::$field)),*,
-                    _ => Err(())
+                    _ => panic!("failed try_from {:?} to constant {}", val, stringify!($name))
                 }
             }
         }
@@ -136,7 +136,7 @@ convert_js_to_c_enum!(
 convert_js_to_c_enum!(
     #[derive(Eq, PartialEq, Debug)]
     #[repr(u8)]
-    Colors, {
+    Color, {
         COLOR_RED: 1,
         COLOR_PURPLE: 2,
         COLOR_BLUE: 3,
@@ -218,6 +218,97 @@ convert_js_to_const!(u16, {
     TOUGH: 10,
     CLAIM: 600
 });
+
+convert_js_to_enum!(
+    #[derive(Eq, PartialEq, Debug)]
+    EffEctId: u16, {
+        EFFECT_INVULNERABILITY: 1001,
+        EFFECT_COLLAPSE_TIMER: 1002
+    }
+);
+
+convert_js_to_enum!(
+    #[derive(Eq, PartialEq, Debug)]
+    PowerId: u8, {
+        PWR_GENERATE_OPS: 1,
+        PWR_OPERATE_SPAWN: 2,
+        PWR_OPERATE_TOWER: 3,
+        PWR_OPERATE_STORAGE: 4,
+        PWR_OPERATE_LAB: 5,
+        PWR_OPERATE_EXTENSION: 6,
+        PWR_OPERATE_OBSERVER: 7,
+        PWR_OPERATE_TERMINAL: 8,
+        PWR_DISRUPT_SPAWN: 9,
+        PWR_DISRUPT_TOWER: 10,
+        PWR_DISRUPT_SOURCE: 11,
+        PWR_SHIELD: 12,
+        PWR_REGEN_SOURCE: 13,
+        PWR_REGEN_MINERAL: 14,
+        PWR_DISRUPT_TERMINAL: 15,
+        PWR_OPERATE_POWER: 16,
+        PWR_FORTIFY: 17,
+        PWR_OPERATE_CONTROLLER: 18,
+        PWR_OPERATE_FACTORY: 19
+    }
+);
+
+convert_js_to_enum!(
+    #[derive(Eq, PartialEq, Debug)]
+    PowerLevel: u16, {
+        POWER_LEVEL_MULTIPLY: 1000,
+        POWER_LEVEL_POW: 2
+    }
+);
+
+convert_js_to_enum!(
+    #[derive(Eq, PartialEq, Debug)]
+    Structure: &'static str, {
+        STRUCTURE_SPAWN: "spawn",
+        STRUCTURE_EXTENSION: "extension",
+        STRUCTURE_ROAD: "road",
+        STRUCTURE_WALL: "constructedWall",
+        STRUCTURE_RAMPART: "rampart",
+        STRUCTURE_KEEPER_LAIR: "keeperLair",
+        STRUCTURE_PORTAL: "portal",
+        STRUCTURE_CONTROLLER: "controller",
+        STRUCTURE_LINK: "link",
+        STRUCTURE_STORAGE: "storage",
+        STRUCTURE_TOWER: "tower",
+        STRUCTURE_OBSERVER: "observer",
+        STRUCTURE_POWER_BANK: "powerBank",
+        STRUCTURE_POWER_SPAWN: "powerSpawn",
+        STRUCTURE_EXTRACTOR: "extractor",
+        STRUCTURE_LAB: "lab",
+        STRUCTURE_TERMINAL: "terminal",
+        STRUCTURE_CONTAINER: "container",
+        STRUCTURE_NUKER: "nuker",
+        STRUCTURE_FACTORY: "factory",
+        STRUCTURE_INVADER_CORE: "invaderCore"
+    }
+);
+
+convert_js_to_enum!(
+    #[derive(Eq, PartialEq, Debug)]
+    BuildableStructure: &'static str, {
+        STRUCTURE_SPAWN: "spawn",
+        STRUCTURE_EXTENSION: "extension",
+        STRUCTURE_ROAD: "road",
+        STRUCTURE_WALL: "constructedWall",
+        STRUCTURE_RAMPART: "rampart",
+        STRUCTURE_LINK: "link",
+        STRUCTURE_STORAGE: "storage",
+        STRUCTURE_TOWER: "tower",
+        STRUCTURE_OBSERVER: "observer",
+        STRUCTURE_POWER_SPAWN: "powerSpawn",
+        STRUCTURE_EXTRACTOR: "extractor",
+        STRUCTURE_LAB: "lab",
+        STRUCTURE_TERMINAL: "terminal",
+        STRUCTURE_CONTAINER: "container",
+        STRUCTURE_NUKER: "nuker",
+        STRUCTURE_FACTORY: "factory"
+    }
+);
+
 
 #[test]
 fn test_eq() {
