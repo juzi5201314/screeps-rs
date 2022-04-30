@@ -1,22 +1,13 @@
 #![feature(decl_macro)]
+#![feature(extern_types)]
+#![allow(unused)]
 
 use js_sys::Object;
-use wasm_bindgen::JsValue;
 use wasm_bindgen::prelude::wasm_bindgen;
+use wasm_bindgen::JsValue;
 
-pub use constants::*;
-pub use types::*;
-
-mod constants;
+pub mod api;
 pub mod hook_panic;
-mod types;
-
-#[cfg(feature = "rust_string")]
-pub type JsString = String;
-
-#[cfg(not(feature = "rust_string"))]
-pub type JsString = js_sys::JsString;
-
 
 #[wasm_bindgen]
 extern "C" {

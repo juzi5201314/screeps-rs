@@ -1,18 +1,6 @@
-use std::convert::TryFrom;
+use std::convert::{TryFrom, TryInto};
 
-macro_rules! convert_js_to_c_enum {
-    ($(#[$attr:meta])* $name:ident, {
-        $($field:ident : $val:expr),*
-    }) => {
-        $(#[$attr])*
-        #[allow(non_camel_case_types)]
-        pub enum $name {
-            $($field = $val),*
-        }
-    };
-}
-
-macro_rules! convert_js_to_enum {
+macro_rules! convert_js_object_to_enum {
     ($(#[$attr:meta])* $name:ident : $ty:ty, {
         $($field:ident : $val:expr),*
     }) => {
@@ -22,11 +10,21 @@ macro_rules! convert_js_to_enum {
             $($field),*
         }
 
-        impl From<$name> for $ty {
-            fn from(val: $name) -> Self {
-                match val {
+        impl $name {
+            pub fn to_const(&self) -> $ty {
+                match self {
                     $($name::$field => $val),*
                 }
+            }
+
+            pub fn from_const(t: $ty) -> Self {
+                TryInto::<Self>::try_into(t).unwrap()
+            }
+        }
+
+        impl From<$name> for $ty {
+            fn from(val: $name) -> Self {
+                val.to_const()
             }
         }
 
@@ -43,25 +41,8 @@ macro_rules! convert_js_to_enum {
     };
 }
 
-macro_rules! convert_js_to_const {
-    ($ty:ty, {
-        $($field:ident : $val:expr),*
-    }) => {
-        $(#[allow(unused)] const $field: $ty = $val;)*
-    };
-}
-
-macro_rules! const_and_enum {
-    ($(#[$attr:meta])* $name:ident : $ty:ty, {
-        $($field:ident : $val:expr),*
-    }) => {
-        convert_js_to_const!($ty, { $($field : $val),* });
-        convert_js_to_enum!($(#[$attr])* $name : $ty, { $($field : $val),* });
-    };
-}
-
-const_and_enum!(
-    #[derive(Eq, PartialEq, Debug)]
+convert_js_object_to_enum!(
+    #[derive(Eq, PartialEq, Debug, Copy, Clone)]
     ResCode: i8, {
         OK: 0,
         ERR_NOT_OWNER: -1,
@@ -83,10 +64,9 @@ const_and_enum!(
     }
 );
 
-convert_js_to_c_enum!(
-    #[derive(Eq, PartialEq, Debug)]
-    #[repr(u8)]
-    Find, {
+convert_js_object_to_enum!(
+    #[derive(Eq, PartialEq, Debug, Copy, Clone)]
+    Find: u8, {
         FIND_EXIT_TOP: 1,
         FIND_EXIT_RIGHT: 3,
         FIND_EXIT_BOTTOM: 5,
@@ -118,10 +98,9 @@ convert_js_to_c_enum!(
     }
 );
 
-convert_js_to_c_enum!(
-    #[derive(Eq, PartialEq, Debug)]
-    #[repr(u8)]
-    Direction, {
+convert_js_object_to_enum!(
+    #[derive(Eq, PartialEq, Debug, Copy, Clone)]
+    Direction: u8, {
         TOP: 1,
         TOP_RIGHT: 2,
         RIGHT: 3,
@@ -133,10 +112,9 @@ convert_js_to_c_enum!(
     }
 );
 
-convert_js_to_c_enum!(
-    #[derive(Eq, PartialEq, Debug)]
-    #[repr(u8)]
-    Color, {
+convert_js_object_to_enum!(
+    #[derive(Eq, PartialEq, Debug, Copy, Clone)]
+    Color: u8, {
         COLOR_RED: 1,
         COLOR_PURPLE: 2,
         COLOR_BLUE: 3,
@@ -150,8 +128,8 @@ convert_js_to_c_enum!(
     }
 );
 
-convert_js_to_enum!(
-    #[derive(Eq, PartialEq, Debug)]
+convert_js_object_to_enum!(
+    #[derive(Eq, PartialEq, Debug, Copy, Clone)]
     Look: &'static str, {
         LOOK_CREEPS: "creep",
         LOOK_ENERGY: "energy",
@@ -170,8 +148,7 @@ convert_js_to_enum!(
     }
 );
 
-#[allow(unused)]
-const OBSTACLE_OBJECT_TYPES: [&'static str; 20] = [
+const OBSTACLE_OBJECT_TYPES: [&str; 20] = [
     "spawn",
     "creep",
     "powerCreep",
@@ -194,8 +171,8 @@ const OBSTACLE_OBJECT_TYPES: [&'static str; 20] = [
     "invaderCore",
 ];
 
-convert_js_to_enum!(
-    #[derive(Eq, PartialEq, Debug)]
+convert_js_object_to_enum!(
+    #[derive(Eq, PartialEq, Debug, Copy, Clone)]
     BodyPart: &'static str, {
         MOVE: "move",
         WORK: "work",
@@ -208,27 +185,30 @@ convert_js_to_enum!(
     }
 );
 
-convert_js_to_const!(u16, {
-    MOVE: 50,
-    WORK: 100,
-    ATTACK: 80,
-    CARRY: 50,
-    HEAL: 250,
-    RANGED_ATTACK: 150,
-    TOUGH: 10,
-    CLAIM: 600
-});
+convert_js_object_to_enum!(
+    #[derive(Eq, PartialEq, Debug, Copy, Clone)]
+    BodyCost: u16, {
+        MOVE: 50,
+        WORK: 100,
+        ATTACK: 80,
+        CARRY: 50,
+        HEAL: 250,
+        RANGED_ATTACK: 150,
+        TOUGH: 10,
+        CLAIM: 600
+    }
+);
 
-convert_js_to_enum!(
-    #[derive(Eq, PartialEq, Debug)]
+convert_js_object_to_enum!(
+    #[derive(Eq, PartialEq, Debug, Copy, Clone)]
     EffEctId: u16, {
         EFFECT_INVULNERABILITY: 1001,
         EFFECT_COLLAPSE_TIMER: 1002
     }
 );
 
-convert_js_to_enum!(
-    #[derive(Eq, PartialEq, Debug)]
+convert_js_object_to_enum!(
+    #[derive(Eq, PartialEq, Debug, Copy, Clone)]
     PowerId: u8, {
         PWR_GENERATE_OPS: 1,
         PWR_OPERATE_SPAWN: 2,
@@ -252,16 +232,16 @@ convert_js_to_enum!(
     }
 );
 
-convert_js_to_enum!(
-    #[derive(Eq, PartialEq, Debug)]
+convert_js_object_to_enum!(
+    #[derive(Eq, PartialEq, Debug, Copy, Clone)]
     PowerLevel: u16, {
         POWER_LEVEL_MULTIPLY: 1000,
         POWER_LEVEL_POW: 2
     }
 );
 
-convert_js_to_enum!(
-    #[derive(Eq, PartialEq, Debug)]
+convert_js_object_to_enum!(
+    #[derive(Eq, PartialEq, Debug, Copy, Clone)]
     Structure: &'static str, {
         STRUCTURE_SPAWN: "spawn",
         STRUCTURE_EXTENSION: "extension",
@@ -287,8 +267,8 @@ convert_js_to_enum!(
     }
 );
 
-convert_js_to_enum!(
-    #[derive(Eq, PartialEq, Debug)]
+convert_js_object_to_enum!(
+    #[derive(Eq, PartialEq, Debug, Copy, Clone)]
     BuildableStructure: &'static str, {
         STRUCTURE_SPAWN: "spawn",
         STRUCTURE_EXTENSION: "extension",
@@ -309,11 +289,10 @@ convert_js_to_enum!(
     }
 );
 
-
 #[test]
 fn test_eq() {
-    assert_eq!(ERR_NOT_ENOUGH_RESOURCES, -6);
-    assert_eq!(ResCode::try_from(ERR_FULL).unwrap(), ResCode::ERR_FULL);
-    assert_eq!(Find::FIND_NUKES as u8, 117);
+    assert_eq!(ResCode::ERR_NOT_ENOUGH_RESOURCES.to_const(), -6);
+    assert_eq!(TryInto::<ResCode>::try_into(-8).unwrap(), ResCode::ERR_FULL);
+    assert_eq!(Find::from_const(117), Find::FIND_NUKES);
     assert_eq!(Into::<&'static str>::into(Look::LOOK_CREEPS), "creep");
 }
